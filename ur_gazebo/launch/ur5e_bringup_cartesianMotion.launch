@@ -50,12 +50,16 @@
   <arg name="paused" default="true" doc="Starts Gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts Gazebo gui" />
 
+  <!-- FT sensor configuration -->
+  <arg name="use_ft" default="true" /> 
+
   <!-- Load urdf on the parameter server -->
   <include file="$(arg robot_description_file)">
     <arg name="joint_limit_params" value="$(arg joint_limit_params)"/>
     <arg name="kinematics_params" value="$(arg kinematics_params)"/>
     <arg name="physical_params" value="$(arg physical_params)"/>
     <arg name="visual_params" value="$(arg visual_params)"/>
+    <arg name="use_ft" value="$(arg use_ft)" /> 
   </include>
 
   <!-- Robot state publisher -->

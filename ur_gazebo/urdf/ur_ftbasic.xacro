@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_robot_gazebo">
+  <!--
+    This is a top-level xacro instantiating the Gazebo-specific version of the
+    'ur_robot' macro (ie: 'ur_robot_gazebo') with basic force/torque sensor and passing it values for all its
+    required arguments 
+  -->
+
+  <!--
+    Import main macro.
+
+    NOTE: this imports the Gazebo-wrapper main macro, NOT the regular
+          xacro macro (which is hosted by ur_description).
+  -->
+  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro" />
+  <xacro:include filename="$(find ur_description)/urdf/inc/ur_common.xacro" />
+
+  <!--Declare arguments -->
+  <xacro:arg name="joint_limit_params" default="" />
+  <xacro:arg name="physical_params" default="" />
+  <xacro:arg name="kinematics_params" default="" />
+  <xacro:arg name="visual_params" default="" />
+
+  <!--
+    legal values:
+      - hardware_interface/PositionJointInterface
+      - hardware_interface/VelocityJointInterface
+      - hardware_interface/EffortJointInterface
+
+    NOTE: this value must correspond to the controller configured in the
+          controller .yaml files in the 'config' directory.
+  -->
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+  <xacro:arg name="safety_limits" default="false" />
+  <xacro:arg name="safety_pos_margin" default="0.15" />
+  <xacro:arg name="safety_k_position" default="20" />
+
+  <!-- Instantiate the Gazebo robot and pass it all the required arguments. -->
+  <xacro:ur_robot_gazebo prefix="" joint_limits_parameters_file="$(arg joint_limit_params)" kinematics_parameters_file="$(arg kinematics_params)" physical_parameters_file="$(arg physical_params)" visual_parameters_file="$(arg visual_params)" transmission_hw_interface="$(arg transmission_hw_interface)" safety_limits="$(arg safety_limits)" safety_pos_margin="$(arg safety_pos_margin)" safety_k_position="$(arg safety_k_position)" />
+
+  <!--
+     TODO:  add ${prefix} to all following link, joint, and topic names, and resolve
+   -->
+  <!--
+    Attach the Gazebo model to Gazebo's world frame.
+
+    Note: if you're looking to integrate a UR into a larger scene and need
+    to add EEFs or other parts, DO NOT change this file or the 'world' link
+    here. Create a NEW xacro instead and decide whether you need to add
+    a 'world' link there.
+  -->
+  <link name="world" />
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link="base_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+
+  <!-- 
+    Force torque sensor link, joint, and Gazebo definition
+    TODO:  parameterize FT sensor properties, e.g. choose Optoforce or OnRobotics by YAML 
+  -->
+
+  <link name="ft_sensor_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.025" />
+      <geometry>
+        <cylinder radius="0.035" length="0.05" />
+      </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.025" />
+      <geometry>
+        <cylinder radius="0.035" length="0.05" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.100" />
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.025" />
+      <inertia ixx="9.890410052167731e-05" ixy="0.0" ixz="0.0" iyy="9.890410052167731e-05" iyz="0.0" izz="0.0001321171875" />
+    </inertial>
+  </link>
+
+  <!-- Use revolute joint as Gazebo's internal URDF to SRDF convertion lumps fixed links in parent -->
+  <joint name="ft_sensor_joint" type="revolute">
+    <parent link="wrist_3_link" />
+    <child link="ft_sensor_link" />
+    <origin xyz="0 0 0.001" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+
+  <!-- Disable collision with previous link -->
+  <disable_collisions link1="ft_sensor_link" link2="wrist_3_link" reason="Adjacent" />
+
+  <!-- Enable Gazebo sensor on joint -->
+  <gazebo reference="ft_sensor_joint">
+    <pose>0 0 0 0 0 0</pose>
+    <sensor name="ft_sensor" type="force_torque">
+      <always_on>true</always_on>
+      <update_rate>10.0</update_rate>
+      <visualize>true</visualize>
+      <force_torque>
+        <frame>sensor</frame>
+        <measure_direction>child_to_parent</measure_direction>
+      </force_torque>
+    </sensor>
+  </gazebo>
+
+  <!-- Use gazebo_ros_pkgs ft_sensor library to publish ft_sensor_topic by referencing ft_sensor_joint -->
+  <gazebo>
+    <plugin name="ft_sensor_plugin" filename="libgazebo_ros_ft_sensor.so">
+      <topicName>ft_sensor/ft_sensor_topic</topicName>
+      <jointName>ft_sensor_joint</jointName>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.003</stddev> <!-- change this to simulate noise -->
+      </noise>
+    </plugin>
+  </gazebo>
+</robot>

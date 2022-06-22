@@ -15,6 +15,7 @@
   <!-- Sensor configurations -->
   <arg name="sensor_configs" />
   <arg name="camera_params" />
+  <arg name="ft_params" />
 
   <!-- Use common launch file and pass all arguments to it -->
   <include file="$(dirname)/load_ur.launch.xml" pass_all_args="true"/>

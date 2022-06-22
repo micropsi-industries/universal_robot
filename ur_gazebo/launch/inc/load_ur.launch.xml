@@ -33,6 +33,7 @@
   <!-- Sensor configurations -->
   <arg name="sensor_configs" />
   <arg name="camera_params" />
+  <arg name="ft_params" />
 
   <!-- Pass robot description with parameters and configurations -->
   <param name="robot_description" command="$(find xacro)/xacro '$(find ur_gazebo)/urdf/$(arg sensor_configs).xacro'
@@ -44,6 +45,7 @@
     safety_limits:=$(arg safety_limits)
     safety_pos_margin:=$(arg safety_pos_margin)
     safety_k_position:=$(arg safety_k_position)
+    ft_params:='$(find ur_gazebo)/config/$(arg ft_params).yaml'
     camera_params:=$(find ur_gazebo)/config/$(arg camera_params).yaml" />
   
 </launch>

@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_robot_gazebo">
+  <!--
+    This is a top-level xacro instantiating the Gazebo-specific version of the
+    'ur_robot' macro (ie: 'ur_robot_gazebo') with basic force/torque sensor and passing it values for all its
+    required arguments 
+  -->
+
+  <!--
+    Import main macro.
+
+    NOTE: this imports the Gazebo-wrapper main macro, NOT the regular
+          xacro macro (which is hosted by ur_description).
+  -->
+  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro" />
+  <xacro:include filename="$(find ur_description)/urdf/inc/ur_common.xacro" />
+
+  <!--Declare arguments -->
+  <xacro:arg name="joint_limit_params" default="" />
+  <xacro:arg name="physical_params" default="" />
+  <xacro:arg name="kinematics_params" default="" />
+  <xacro:arg name="visual_params" default="" />
+  <xacro:arg name="camera_params" default="" />
+
+  <!--
+    legal values:
+      - hardware_interface/PositionJointInterface
+      - hardware_interface/VelocityJointInterface
+      - hardware_interface/EffortJointInterface
+
+    NOTE: this value must correspond to the controller configured in the
+          controller .yaml files in the 'config' directory.
+  -->
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+  <xacro:arg name="safety_limits" default="false" />
+  <xacro:arg name="safety_pos_margin" default="0.15" />
+  <xacro:arg name="safety_k_position" default="20" />
+
+  <!-- Instantiate the Gazebo robot and pass it all the required arguments. -->
+  <xacro:ur_robot_gazebo
+    prefix=""
+    joint_limits_parameters_file="$(arg joint_limit_params)"
+    kinematics_parameters_file="$(arg kinematics_params)"
+    physical_parameters_file="$(arg physical_params)"
+    visual_parameters_file="$(arg visual_params)"
+    transmission_hw_interface="$(arg transmission_hw_interface)"
+    safety_limits="$(arg safety_limits)"
+    safety_pos_margin="$(arg safety_pos_margin)"
+    safety_k_position="$(arg safety_k_position)"
+  />
+  <!--
+     TODO:  add ${prefix} to all following link, joint, and topic names, and resolve
+   -->
+  <!--
+    Attach the Gazebo model to Gazebo's world frame.
+
+    Note: if you're looking to integrate a UR into a larger scene and need
+    to add EEFs or other parts, DO NOT change this file or the 'world' link
+    here. Create a NEW xacro instead and decide whether you need to add
+    a 'world' link there.
+  -->
+  <link name="world" />
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link="base_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+
+  <!-- 
+    Camera sensor link, joint, and Gazebo definition
+   -->
+   <xacro:property name="camera_configs" value="${xacro.load_yaml('$(arg camera_params)')}"/>
+
+   <link name="${camera_configs['link']['name']}">
+    <visual>
+      <origin 
+        xyz="${camera_configs['link']['origin']['xyz']}"
+        rpy="${camera_configs['link']['origin']['rpy']}" />
+      <geometry>
+        <cylinder 
+          radius="${camera_configs['link']['radius']}" 
+          length="${camera_configs['link']['length']}" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin 
+        xyz="${camera_configs['link']['origin']['xyz']}"
+        rpy="${camera_configs['link']['origin']['rpy']}" />
+      <geometry>
+        <cylinder 
+          radius="${camera_configs['link']['radius']}" 
+          length="${camera_configs['link']['length']}" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${camera_configs['link']['inertial']['mass']}" />
+      <origin 
+        xyz="${camera_configs['link']['inertial']['origin']['xyz']}"
+        rpy="${camera_configs['link']['inertial']['origin']['rpy']}" />
+      <inertia
+        ixx="${camera_configs['link']['inertial']['inertia']['ixx']}"
+        ixy="${camera_configs['link']['inertial']['inertia']['ixy']}"
+        ixz="${camera_configs['link']['inertial']['inertia']['ixz']}"
+        iyy="${camera_configs['link']['inertial']['inertia']['iyy']}"
+        iyz="${camera_configs['link']['inertial']['inertia']['iyz']}"
+        izz="${camera_configs['link']['inertial']['inertia']['izz']}" />
+    </inertial>
+  </link>
+
+  <joint name="${camera_configs['joint']['name']}" type="revolute">
+    <parent link="${camera_configs['joint']['parent_link']}" />
+    <child link="${camera_configs['link']['name']}" />
+    <origin 
+        xyz="${camera_configs['joint']['origin']['xyz']}"
+        rpy="${camera_configs['joint']['origin']['rpy']}" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="0" effort="0" velocity="0" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  
+  <!-- Disable collision with previous link -->
+  <disable_collisions 
+    link1="${camera_configs['link']['name']}"
+    link2="${camera_configs['joint']['parent_link']}"
+    reason="Adjacent" />
+
+  <gazebo
+    reference="${camera_configs['link']['name']}"
+    pose="${camera_configs['camera']['pose']}">
+    <sensor 
+      type="camera"
+      name="${camera_configs['camera']['name']}">
+      <update_rate>${camera_configs['camera']['update_rate']}</update_rate>
+      <camera
+        name="head" >
+        <horizontal_fov>${camera_configs['camera']['horizontal_fov']}</horizontal_fov>
+        <image> 
+          <width>${camera_configs['camera']['image']['width']}</width>
+          <height>${camera_configs['camera']['image']['height']}</height>
+          <format>${camera_configs['camera']['image']['format']}</format>
+        </image>
+        <clip> 
+          <near>${camera_configs['camera']['clip']['near']}</near>
+          <far>${camera_configs['camera']['clip']['far']}</far>
+        </clip>
+        <noise>
+          <type>${camera_configs['camera']['noise_type']}</type> 
+          <mean>${camera_configs['camera']['noise_mean']}</mean> 
+          <stddev>${camera_configs['camera']['noise_stddev']}</stddev>
+        </noise>
+      </camera>
+      <plugin name="${camera_configs['camera']['plugin']['camera_name']}_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>${camera_configs['camera']['plugin']['always_on']}</alwaysOn>
+        <cameraName>${camera_configs['camera']['plugin']['camera_name']}</cameraName>
+        <imageTopicName>${camera_configs['camera']['plugin']['image_topic_name']}</imageTopicName>
+        <cameraInfoTopicName>${camera_configs['camera']['plugin']['camera_info_topic_name']}</cameraInfoTopicName>
+        <frameName>${camera_configs['link']['name']}</frameName>
+        <CxPrime>${camera_configs['camera']['plugin']['cx_prime']}</CxPrime>
+        <Cx>${camera_configs['camera']['plugin']['cx']}</Cx>
+        <Cy>${camera_configs['camera']['plugin']['cy']}</Cy>
+        <focalLength>${camera_configs['camera']['plugin']['focal_length']}</focalLength>
+        <hackBaseline>${camera_configs['camera']['plugin']['hack_baseline']}</hackBaseline>
+        <distortionK1>${camera_configs['camera']['plugin']['distortion_k1']}</distortionK1>
+        <distortionK2>${camera_configs['camera']['plugin']['distortion_k2']}</distortionK2>
+        <distortionK3>${camera_configs['camera']['plugin']['distortion_k3']}</distortionK3>
+        <distortionT1>${camera_configs['camera']['plugin']['distortion_t1']}</distortionT1>
+        <distortionT2>${camera_configs['camera']['plugin']['distortion_t2']}</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>
+</robot>

@@ -50,8 +50,10 @@
   <arg name="paused" default="true" doc="Starts Gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts Gazebo gui" />
 
-  <!-- FT sensor configuration -->
-  <arg name="use_ft" default="true" /> 
+  <!-- Sensor configurations -->
+  <arg name="sensor_configs" default="ur_camera"/>
+  <arg name="camera_params" default="camera_base"/>
+  <arg name="ft_params" default="ft_sensor"/>
 
   <!-- Load urdf on the parameter server -->
   <include file="$(arg robot_description_file)">
@@ -59,7 +61,9 @@
     <arg name="kinematics_params" value="$(arg kinematics_params)"/>
     <arg name="physical_params" value="$(arg physical_params)"/>
     <arg name="visual_params" value="$(arg visual_params)"/>
-    <arg name="use_ft" value="$(arg use_ft)" /> 
+    <arg name="camera_params" value="$(arg camera_params)" />
+    <arg name="ft_params" value="$(arg ft_params)" />
+    <arg name="sensor_configs" value="$(arg sensor_configs)"/>
   </include>
 
   <!-- Robot state publisher -->

@@ -20,6 +20,7 @@
   <xacro:arg name="physical_params" default="" />
   <xacro:arg name="kinematics_params" default="" />
   <xacro:arg name="visual_params" default="" />
+  <xacro:arg name="ft_params" default="" />
 
   <!--
     legal values:
@@ -58,69 +59,87 @@
 
   <!-- 
     Force torque sensor link, joint, and Gazebo definition
-    TODO:  parameterize FT sensor properties, e.g. choose Optoforce or OnRobotics by YAML 
   -->
+  <xacro:property name="ft_config" value="${xacro.load_yaml('$(arg ft_params)')}"/>
 
-  <link name="ft_sensor_link">
+  <link name="${ft_config['link']['name']}">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.025" />
+      <origin 
+        xyz="${ft_config['link']['origin']['xyz']}"
+        rpy="${ft_config['link']['origin']['rpy']}" />
       <geometry>
-        <cylinder radius="0.035" length="0.05" />
+        <cylinder 
+          radius="${ft_config['link']['radius']}" 
+          length="${ft_config['link']['length']}" />
       </geometry>
-      <material name="LightGrey">
-        <color rgba="0.7 0.7 0.7 1.0" />
-      </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.025" />
+      <origin 
+        xyz="${ft_config['link']['origin']['xyz']}"
+        rpy="${ft_config['link']['origin']['rpy']}" />
       <geometry>
-        <cylinder radius="0.035" length="0.05" />
+        <cylinder 
+          radius="${ft_config['link']['radius']}" 
+          length="${ft_config['link']['length']}" />
       </geometry>
     </collision>
     <inertial>
-      <mass value="0.100" />
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.025" />
-      <inertia ixx="9.890410052167731e-05" ixy="0.0" ixz="0.0" iyy="9.890410052167731e-05" iyz="0.0" izz="0.0001321171875" />
+      <mass value="${ft_config['link']['inertial']['mass']}" />
+      <origin 
+        xyz="${ft_config['link']['inertial']['origin']['xyz']}"
+        rpy="${ft_config['link']['inertial']['origin']['rpy']}" />
+      <inertia
+        ixx="${ft_config['link']['inertial']['inertia']['ixx']}"
+        ixy="${ft_config['link']['inertial']['inertia']['ixy']}"
+        ixz="${ft_config['link']['inertial']['inertia']['ixz']}"
+        iyy="${ft_config['link']['inertial']['inertia']['iyy']}"
+        iyz="${ft_config['link']['inertial']['inertia']['iyz']}"
+        izz="${ft_config['link']['inertial']['inertia']['izz']}" />
     </inertial>
   </link>
 
   <!-- Use revolute joint as Gazebo's internal URDF to SRDF convertion lumps fixed links in parent -->
-  <joint name="ft_sensor_joint" type="revolute">
-    <parent link="wrist_3_link" />
-    <child link="ft_sensor_link" />
-    <origin xyz="0 0 0.001" rpy="0 0 0" />
+  <joint name="${ft_config['joint']['name']}" type="revolute">
+    <parent link="${ft_config['joint']['parent_link']}" />
+    <child link="${ft_config['link']['name']}" />
+    <origin 
+        xyz="${ft_config['joint']['origin']['xyz']}"
+        rpy="${ft_config['joint']['origin']['rpy']}" />
     <axis xyz="0 0 1" />
     <limit lower="0" upper="0" effort="0" velocity="0" />
     <dynamics damping="0" friction="0" />
   </joint>
 
   <!-- Disable collision with previous link -->
-  <disable_collisions link1="ft_sensor_link" link2="wrist_3_link" reason="Adjacent" />
+  <disable_collisions
+    link1="${ft_config['link']['name']}"
+    link2="${ft_config['joint']['parent_link']}"
+    reason="Adjacent" />
 
   <!-- Enable Gazebo sensor on joint -->
-  <gazebo reference="ft_sensor_joint">
-    <pose>0 0 0 0 0 0</pose>
+  <gazebo 
+    reference="${ft_config['joint']['name']}"
+    pose="${ft_config['sensor']['pose']}"
+    update_rate="${ft_config['sensor']['update_rate']}">
     <sensor name="ft_sensor" type="force_torque">
-      <always_on>true</always_on>
-      <update_rate>10.0</update_rate>
-      <visualize>true</visualize>
+      <always_on>${ft_config['sensor']['always_on']}</always_on>
+      <visualize>${ft_config['sensor']['visualize']}</visualize>
       <force_torque>
         <frame>sensor</frame>
-        <measure_direction>child_to_parent</measure_direction>
+        <measure_direction>${ft_config['sensor']['measure_direction']}</measure_direction>
       </force_torque>
     </sensor>
   </gazebo>
 
   <!-- Use gazebo_ros_pkgs ft_sensor library to publish ft_sensor_topic by referencing ft_sensor_joint -->
   <gazebo>
-    <plugin name="ft_sensor_plugin" filename="libgazebo_ros_ft_sensor.so">
-      <topicName>ft_sensor/ft_sensor_topic</topicName>
-      <jointName>ft_sensor_joint</jointName>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.003</stddev> <!-- change this to simulate noise -->
-      </noise>
+    <plugin name="${ft_config['sensor']['name']}_plugin" filename="libgazebo_ros_ft_sensor.so">
+      <topicName>${ft_config['sensor']['topic_name']}</topicName>
+      <jointName>${ft_config['joint']['name']}</jointName>
+      <noise 
+        type="${ft_config['sensor']['noise_type']}" 
+        mean="${ft_config['sensor']['noise_mean']}" 
+        stddev="${ft_config['sensor']['noise_stddev']}" />
     </plugin>
   </gazebo>
 </robot>

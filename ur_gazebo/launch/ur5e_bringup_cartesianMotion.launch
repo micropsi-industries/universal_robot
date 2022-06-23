@@ -51,7 +51,7 @@
   <arg name="gui" default="true" doc="Starts Gazebo gui" />
 
   <!-- Sensor configurations -->
-  <arg name="sensor_configs" default="ur_camera"/>
+  <arg name="sensor_configs" default="ur_ft_camera"/>
   <arg name="camera_params" default="camera_base"/>
   <arg name="ft_params" default="ft_sensor"/>
 

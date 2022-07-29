@@ -1,0 +1,20 @@
+<launch>
+  <arg name="sim" default="false" />
+  <arg name="debug" default="false" />
+
+  <!-- Remap follow_joint_trajectory -->
+  <remap if="$(arg sim)" from="/scaled_pos_joint_traj_controller/follow_joint_trajectory" to="/pos_joint_traj_controller/follow_joint_trajectory"/>
+
+  <!-- <rosparam command="load" file="$(find ur5e_moveit_config)/config/joint_names.yaml" /> -->
+
+  <!-- Launch moveit -->
+  <include file="$(find ur5e_moveit_config)/launch/move_group.launch">
+    <arg name="debug" default="$(arg debug)" />
+  </include>
+
+  <!-- <node pkg="tf" type="static_transform_publisher" name="world2base_link" args="0 0 0 5.49 0 0 world base_link 1000" />
+  <node pkg="tf" type="static_transform_publisher" name="ximea_frame2wrist" args="-0.029 -0.137 0.144 0.010 0.265 0.964 0.004 wrist_3_link ximea_frame 1000" /> -->
+
+  <!-- <node pkg="tf" type="static_transform_publisher" name="tag2world" args="0.0 0.5 0.04 0 3.14 3.14 tag0 world 1000" /> not needed-->
+
+</launch>

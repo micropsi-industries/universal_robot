@@ -30,13 +30,7 @@
   <arg name="safety_pos_margin" default="0.15" doc="The lower/upper limits in the safety controller" />
   <arg name="safety_k_position" default="20" doc="Used to set k position in the safety controller" />
 
-  <!-- Sensor configurations -->
-  <arg name="sensor_configs" />
-  <arg name="camera_params" />
-  <arg name="ft_params" />
-
-  <!-- Pass robot description with parameters and configurations -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find ur_gazebo)/urdf/$(arg sensor_configs).xacro'
+  <param name="robot_description" command="$(find xacro)/xacro '$(find ur_gazebo)/urdf/ur.xacro'
     joint_limit_params:=$(arg joint_limit_params)
     kinematics_params:=$(arg kinematics_params)
     physical_params:=$(arg physical_params)
@@ -44,8 +38,6 @@
     transmission_hw_interface:=$(arg transmission_hw_interface)
     safety_limits:=$(arg safety_limits)
     safety_pos_margin:=$(arg safety_pos_margin)
-    safety_k_position:=$(arg safety_k_position)
-    ft_params:='$(find ur_gazebo)/config/$(arg ft_params).yaml'
-    camera_params:=$(find ur_gazebo)/config/$(arg camera_params).yaml" />
-  
+    safety_k_position:=$(arg safety_k_position)"
+    />
 </launch>

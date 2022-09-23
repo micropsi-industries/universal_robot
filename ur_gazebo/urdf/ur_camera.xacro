@@ -67,104 +67,105 @@
   </joint>
 
   <!-- 
-    Camera sensor link, joint, and Gazebo definition
+    Camera link, joint, and Gazebo definition
    -->
-   <xacro:property name="camera_configs" value="${xacro.load_yaml('$(arg camera_params)')}"/>
-
-   <link name="${camera_configs['link']['name']}">
+   <xacro:property name="camera_config" value="${xacro.load_yaml('$(arg camera_params)')}"/>
+  <!-- Camera link -->
+  <link name="${camera_config['link']['name']}">
     <visual>
       <origin 
-        xyz="${camera_configs['link']['origin']['xyz']}"
-        rpy="${camera_configs['link']['origin']['rpy']}" />
+        xyz="${camera_config['link']['origin']['xyz']}"
+        rpy="${camera_config['link']['origin']['rpy']}" />
       <geometry>
         <cylinder 
-          radius="${camera_configs['link']['radius']}" 
-          length="${camera_configs['link']['length']}" />
+          radius="${camera_config['link']['radius']}" 
+          length="${camera_config['link']['length']}" />
       </geometry>
     </visual>
     <collision>
       <origin 
-        xyz="${camera_configs['link']['origin']['xyz']}"
-        rpy="${camera_configs['link']['origin']['rpy']}" />
+        xyz="${camera_config['link']['origin']['xyz']}"
+        rpy="${camera_config['link']['origin']['rpy']}" />
       <geometry>
         <cylinder 
-          radius="${camera_configs['link']['radius']}" 
-          length="${camera_configs['link']['length']}" />
+          radius="${camera_config['link']['radius']}" 
+          length="${camera_config['link']['length']}" />
       </geometry>
     </collision>
     <inertial>
-      <mass value="${camera_configs['link']['inertial']['mass']}" />
+      <mass value="${camera_config['link']['inertial']['mass']}" />
       <origin 
-        xyz="${camera_configs['link']['inertial']['origin']['xyz']}"
-        rpy="${camera_configs['link']['inertial']['origin']['rpy']}" />
+        xyz="${camera_config['link']['inertial']['origin']['xyz']}"
+        rpy="${camera_config['link']['inertial']['origin']['rpy']}" />
       <inertia
-        ixx="${camera_configs['link']['inertial']['inertia']['ixx']}"
-        ixy="${camera_configs['link']['inertial']['inertia']['ixy']}"
-        ixz="${camera_configs['link']['inertial']['inertia']['ixz']}"
-        iyy="${camera_configs['link']['inertial']['inertia']['iyy']}"
-        iyz="${camera_configs['link']['inertial']['inertia']['iyz']}"
-        izz="${camera_configs['link']['inertial']['inertia']['izz']}" />
+        ixx="${camera_config['link']['inertial']['inertia']['ixx']}"
+        ixy="${camera_config['link']['inertial']['inertia']['ixy']}"
+        ixz="${camera_config['link']['inertial']['inertia']['ixz']}"
+        iyy="${camera_config['link']['inertial']['inertia']['iyy']}"
+        iyz="${camera_config['link']['inertial']['inertia']['iyz']}"
+        izz="${camera_config['link']['inertial']['inertia']['izz']}" />
     </inertial>
   </link>
-
-  <joint name="${camera_configs['joint']['name']}" type="revolute">
-    <parent link="${camera_configs['joint']['parent_link']}" />
-    <child link="${camera_configs['link']['name']}" />
+  <!-- Camera joint -->
+  <joint name="${camera_config['joint']['name']}" type="revolute">
+    <parent link="${camera_config['joint']['parent_link']}" />
+    <child link="${camera_config['link']['name']}" />
     <origin 
-        xyz="${camera_configs['joint']['origin']['xyz']}"
-        rpy="${camera_configs['joint']['origin']['rpy']}" />
+        xyz="${camera_config['joint']['origin']['xyz']}"
+        rpy="${camera_config['joint']['origin']['rpy']}" />
     <axis xyz="0 0 1" />
     <limit lower="0" upper="0" effort="0" velocity="0" />
     <dynamics damping="0" friction="0" />
   </joint>
-  
   <!-- Disable collision with previous link -->
   <disable_collisions 
-    link1="${camera_configs['link']['name']}"
-    link2="${camera_configs['joint']['parent_link']}"
+    link1="${camera_config['link']['name']}"
+    link2="${camera_config['joint']['parent_link']}"
     reason="Adjacent" />
-
+  <!-- Gazebo specific settings for camera -->
   <gazebo
-    reference="${camera_configs['link']['name']}"
-    pose="${camera_configs['camera']['pose']}">
+    reference="${camera_config['link']['name']}"
+    pose="${camera_config['camera']['pose']}" >
+    <material>Gazebo/Blue</material>
     <sensor 
       type="camera"
-      name="${camera_configs['camera']['name']}">
-      <update_rate>${camera_configs['camera']['update_rate']}</update_rate>
+      name="${camera_config['camera']['name']}">
+      <update_rate>${camera_config['camera']['update_rate']}</update_rate>
       <camera
         name="head" >
-        <horizontal_fov>${camera_configs['camera']['horizontal_fov']}</horizontal_fov>
+        <horizontal_fov>${camera_config['camera']['horizontal_fov']}</horizontal_fov>
         <image> 
-          <width>${camera_configs['camera']['image']['width']}</width>
-          <height>${camera_configs['camera']['image']['height']}</height>
-          <format>${camera_configs['camera']['image']['format']}</format>
+          <width>${camera_config['camera']['image']['width']}</width>
+          <height>${camera_config['camera']['image']['height']}</height>
+          <format>${camera_config['camera']['image']['format']}</format>
         </image>
         <clip> 
-          <near>${camera_configs['camera']['clip']['near']}</near>
-          <far>${camera_configs['camera']['clip']['far']}</far>
+          <near>${camera_config['camera']['clip']['near']}</near>
+          <far>${camera_config['camera']['clip']['far']}</far>
         </clip>
         <noise>
-          <type>${camera_configs['camera']['noise_type']}</type> 
-          <mean>${camera_configs['camera']['noise_mean']}</mean> 
-          <stddev>${camera_configs['camera']['noise_stddev']}</stddev>
+          <type>${camera_config['camera']['noise_type']}</type> 
+          <mean>${camera_config['camera']['noise_mean']}</mean> 
+          <stddev>${camera_config['camera']['noise_stddev']}</stddev>
         </noise>
       </camera>
-      <plugin name="${camera_configs['camera']['plugin']['camera_name']}_controller" filename="libgazebo_ros_camera.so">
-        <alwaysOn>${camera_configs['camera']['plugin']['always_on']}</alwaysOn>
-        <cameraName>${camera_configs['camera']['plugin']['camera_name']}</cameraName>
-        <imageTopicName>${camera_configs['camera']['plugin']['image_topic_name']}</imageTopicName>
-        <cameraInfoTopicName>${camera_configs['camera']['plugin']['camera_info_topic_name']}</cameraInfoTopicName>
-        <frameName>${camera_configs['link']['name']}</frameName>
-        <CxPrime>${camera_configs['camera']['plugin']['cx_prime']}</CxPrime>
-        <Cx>${camera_configs['camera']['plugin']['cx']}</Cx>
-        <Cy>${camera_configs['camera']['plugin']['cy']}</Cy>
-        <focalLength>${camera_configs['camera']['plugin']['focal_length']}</focalLength>
-        <hackBaseline>${camera_configs['camera']['plugin']['hack_baseline']}</hackBaseline>
-        <distortionK1>${camera_configs['camera']['plugin']['distortion_k1']}</distortionK1>
-        <distortionK2>${camera_configs['camera']['plugin']['distortion_k2']}</distortionK2>
-        <distortionK3>${camera_configs['camera']['plugin']['distortion_k3']}</distortionK3>
-        <distortionT1>${camera_configs['camera']['plugin']['distortion_t1']}</distortionT1>
-        <distortionT2>${camera_configs['camera']['plugin']['distortion_t2']}</distortionT2>
+      <plugin name="${camera_config['camera']['plugin']['camera_name']}_controller" filename="libgazebo_ros_triggered_camera.so">
+        <alwaysOn>${camera_config['camera']['plugin']['always_on']}</alwaysOn>
+        <cameraName>${camera_config['camera']['plugin']['camera_name']}</cameraName>
+        <imageTopicName>${camera_config['camera']['plugin']['image_topic_name']}</imageTopicName>
+        <cameraInfoTopicName>${camera_config['camera']['plugin']['camera_info_topic_name']}</cameraInfoTopicName>
+        <triggerTopicName>${camera_config['camera']['plugin']['trigger_topic_name']}</triggerTopicName>
+        <frameName>${camera_config['link']['name']}</frameName>
+        <CxPrime>${camera_config['camera']['plugin']['cx_prime']}</CxPrime>
+        <Cx>${camera_config['camera']['plugin']['cx']}</Cx>
+        <Cy>${camera_config['camera']['plugin']['cy']}</Cy>
+        <focalLength>${camera_config['camera']['plugin']['focal_length']}</focalLength>
+        <hackBaseline>${camera_config['camera']['plugin']['hack_baseline']}</hackBaseline>
+        <distortionK1>${camera_config['camera']['plugin']['distortion_k1']}</distortionK1>
+        <distortionK2>${camera_config['camera']['plugin']['distortion_k2']}</distortionK2>
+        <distortionK3>${camera_config['camera']['plugin']['distortion_k3']}</distortionK3>
+        <distortionT1>${camera_config['camera']['plugin']['distortion_t1']}</distortionT1>
+        <distortionT2>${camera_config['camera']['plugin']['distortion_t2']}</distortionT2>
       </plugin>
     </sensor>
   </gazebo>

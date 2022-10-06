@@ -1,8 +1,8 @@
 # Camera parameters
 link:
   name: camera_link
-  length: 0.05
-  radius: 0.005
+  length: 0.03
+  radius: 0.008
   origin: 
       xyz: 0 0 0
       rpy: 1.57079632679 0 1.57079632679
@@ -19,20 +19,20 @@ link:
       iyz: 0.0
       izz: 0.000013
 
-# Modify pitch to control camera tit with -pi/4 straight down, 0 looking at gripper.
+# Modify pitch to control camera tit with -pi/2 (~-1.5708) straight down, 0 looking at gripper.
 #  XYZ is like tcp with z in grasp direction
 joint:
   name: camera_joint
   parent_link: wrist_3_link
   origin: 
       xyz: 0 -0.06 0.025
-      rpy: 3.14159265359 -1.32 1.57079632679
+      rpy: 3.14159265359 -1.2 1.57079632679
 
 camera:
   name: camera_base
   pose: 0 0 0 0 0 0
   update_rate: 30
-  horizontal_fov: 0.78539816339
+  horizontal_fov: 1.1
   image:
     width: 800
     height: 800

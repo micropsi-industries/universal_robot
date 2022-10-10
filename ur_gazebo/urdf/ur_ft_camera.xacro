@@ -66,11 +66,12 @@
     <child link="base_link" />
     <origin xyz="0 0 0" rpy="0 0 0" />
   </joint>
+
   <!-- 
-    Force torque sensor link, joint, and Gazebo definition
+    Force torque sensor link, joint, and Gazebo settings
   -->
   <xacro:property name="ft_config" value="${xacro.load_yaml('$(arg ft_params)')}"/>
-
+  <!-- FT sensor link -->
   <link name="${ft_config['link']['name']}">
     <visual>
       <origin 
@@ -106,7 +107,7 @@
         izz="${ft_config['link']['inertial']['inertia']['izz']}" />
     </inertial>
   </link>
-
+  <!-- FT sensor joint -->
   <!-- Use revolute joint as Gazebo's internal URDF to SRDF convertion lumps fixed links in parent -->
   <joint name="${ft_config['joint']['name']}" type="revolute">
     <parent link="${ft_config['joint']['parent_link']}" />
@@ -118,14 +119,16 @@
     <limit lower="0" upper="0" effort="0" velocity="0" />
     <dynamics damping="0" friction="0" />
   </joint>
-
   <!-- Disable collision with previous link -->
   <disable_collisions
     link1="${ft_config['link']['name']}"
     link2="${ft_config['joint']['parent_link']}"
     reason="Adjacent" />
-
-  <!-- Enable Gazebo sensor on joint -->
+  <!-- Gazebo specific settings for FT sensor link -->
+  <gazebo reference="${ft_config['link']['name']}">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+  <!-- Enable Gazebo sensor on FT joint -->
   <gazebo 
     reference="${ft_config['joint']['name']}"
     pose="${ft_config['sensor']['pose']}"
@@ -139,7 +142,6 @@
       </force_torque>
     </sensor>
   </gazebo>
-
   <!-- Use gazebo_ros_pkgs ft_sensor library to publish ft_sensor_topic by referencing ft_sensor_joint -->
   <gazebo>
     <plugin name="${ft_config['sensor']['name']}_plugin" filename="libgazebo_ros_ft_sensor.so">
@@ -151,12 +153,13 @@
         stddev="${ft_config['sensor']['noise_stddev']}" />
     </plugin>
   </gazebo>
+
   <!-- 
     Camera link, joint, and Gazebo definition
    -->
    <xacro:property name="camera_config" value="${xacro.load_yaml('$(arg camera_params)')}"/>
-
-   <link name="${camera_config['link']['name']}">
+  <!-- Camera link -->
+  <link name="${camera_config['link']['name']}">
     <visual>
       <origin 
         xyz="${camera_config['link']['origin']['xyz']}"
@@ -191,7 +194,7 @@
         izz="${camera_config['link']['inertial']['inertia']['izz']}" />
     </inertial>
   </link>
-
+  <!-- Camera joint -->
   <joint name="${camera_config['joint']['name']}" type="revolute">
     <parent link="${camera_config['joint']['parent_link']}" />
     <child link="${camera_config['link']['name']}" />
@@ -202,19 +205,19 @@
     <limit lower="0" upper="0" effort="0" velocity="0" />
     <dynamics damping="0" friction="0" />
   </joint>
-  
   <!-- Disable collision with previous link -->
   <disable_collisions 
     link1="${camera_config['link']['name']}"
     link2="${camera_config['joint']['parent_link']}"
     reason="Adjacent" />
-
+  <!-- Gazebo specific settings for camera -->
   <gazebo
     reference="${camera_config['link']['name']}"
-    pose="${camera_config['camera']['pose']}">
+    pose="${camera_config['camera']['pose']}" >
+    <material>Gazebo/Blue</material>
     <sensor 
       type="camera"
-      name="camera1 ">
+      name="${camera_config['camera']['name']}">
       <update_rate>${camera_config['camera']['update_rate']}</update_rate>
       <camera
         name="head" >
@@ -234,11 +237,12 @@
           <stddev>${camera_config['camera']['noise_stddev']}</stddev>
         </noise>
       </camera>
-      <plugin name="${camera_config['camera']['plugin']['camera_name']}_controller" filename="libgazebo_ros_camera.so">
+      <plugin name="${camera_config['camera']['plugin']['camera_name']}_controller" filename="libgazebo_ros_triggered_camera.so">
         <alwaysOn>${camera_config['camera']['plugin']['always_on']}</alwaysOn>
         <cameraName>${camera_config['camera']['plugin']['camera_name']}</cameraName>
         <imageTopicName>${camera_config['camera']['plugin']['image_topic_name']}</imageTopicName>
         <cameraInfoTopicName>${camera_config['camera']['plugin']['camera_info_topic_name']}</cameraInfoTopicName>
+        <triggerTopicName>${camera_config['camera']['plugin']['trigger_topic_name']}</triggerTopicName>
         <frameName>${camera_config['link']['name']}</frameName>
         <CxPrime>${camera_config['camera']['plugin']['cx_prime']}</CxPrime>
         <Cx>${camera_config['camera']['plugin']['cx']}</Cx>

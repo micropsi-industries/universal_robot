@@ -55,6 +55,7 @@ camera:
     camera_name: camera_ximea
     image_topic_name: image_raw
     camera_info_topic_name: camera_info
+    trigger_topic_name: camera_trigger
     cx_prime:      0        # rectified optical center x, for sim, CxPrime == Cx
     cx:            0        # optical center x
     cy:            0        # optical center y

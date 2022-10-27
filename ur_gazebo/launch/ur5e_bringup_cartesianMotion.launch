@@ -37,6 +37,16 @@
   <arg name="physical_params" default="$(find ur_description)/config/ur5e/physical_parameters.yaml"/>
   <arg name="visual_params" default="$(find ur_description)/config/ur5e/visual_parameters.yaml"/>
 
+  <!-- World configuration:
+    As more worlds are designed, they will be made available (through m_picking
+    parameter) here. By default, we launch an empty world. Or we launch a user
+    defined skill_scenario.
+  -->
+  <arg name="skill_scenario" default="empty"/>
+  <arg name="gazebo_world_launch" default="$(find gazebo_ros)/launch/empty_world.launch" />
+  <arg name="gazebo_world" value="worlds/empty.world" if="$(eval arg('skill_scenario')=='empty')"/>
+  <arg name="gazebo_world" value="$(find micropsi_packages)/worlds/m_picking/lab.world" if="$(eval arg('skill_scenario')=='m_picking')"/>
+
   <!-- Controller configuration -->
   <arg name="controller_config_file" default="$(find ur_gazebo)/config/ur5e_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
   <arg name="controllers" default="joint_state_controller pos_joint_traj_controller" doc="Controllers that are activated by default."/>
@@ -51,7 +61,8 @@
   <arg name="gui" default="true" doc="Starts Gazebo gui" />
 
   <!-- Sensor configurations -->
-  <arg name="sensor_configs" default="ur_ft_camera"/>
+  <arg name="sensor_configs" value="ur_ft_camera" if="$(eval arg('skill_scenario')=='empty')" />
+  <arg name="sensor_configs" value="ur_ft_camera_m-gripper" if="$(eval arg('skill_scenario')=='m_picking')"/>
   <arg name="camera_params" default="camera_base"/>
   <arg name="ft_params" default="ft_sensor"/>
 
@@ -76,6 +87,8 @@
   <include file="$(dirname)/inc/ur_control.launch.xml">
     <arg name="controller_config_file" value="$(arg controller_config_file)"/>
     <arg name="controllers" value="$(arg controllers)"/>
+    <arg name="gazebo_world" value="$(arg gazebo_world)" />
+    <arg name="gazebo_world_launch" value="$(arg gazebo_world_launch)" />
     <arg name="gui" value="$(arg gui)"/>
     <arg name="paused" value="$(arg paused)"/>
     <arg name="stopped_controllers" value="$(arg stopped_controllers)"/>

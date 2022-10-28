@@ -58,14 +58,7 @@
     args="
       -urdf
       -param $(arg robot_description_param_name)
-      -model $(arg gazebo_model_name)
-      -J shoulder_pan_joint $(arg home_shoulder_pan)
-      -J shoulder_lift_joint $(arg home_shoulder_lift)
-      -J elbow_joint $(arg home_elbow)
-      -J wrist_1_joint $(arg home_wrist_1)
-      -J wrist_2_joint $(arg home_wrist_2)
-      -J wrist_3_joint $(arg home_wrist_3)
-      -unpause" 
+      -model $(arg gazebo_model_name)" 
       output="screen" respawn="false" />
 
   <!-- Load and start the controllers listed in the 'controllers' arg. -->
